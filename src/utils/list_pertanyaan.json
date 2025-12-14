@@ -1,0 +1,66 @@
+{
+  "bot_name": "PutakaBot",
+  "rules": [
+    {
+      "keywords": ["layanan", "perpustakaan", "informasi"],
+      "response": "Perpustakaan menyediakan layanan peminjaman buku, e-book, jurnal, serta fasilitas baca dan belajar."
+    },
+    {
+      "keywords": ["daftar", "pendaftaran", "anggota"],
+      "response": "Pendaftaran anggota dapat dilakukan melalui website atau langsung di perpustakaan dengan membawa kartu identitas."
+    },
+    {
+      "keywords": ["gratis", "biaya", "bayar daftar"],
+      "response": "Pendaftaran anggota perpustakaan tidak dipungut biaya."
+    },
+    {
+      "keywords": ["lupa nomor", "nomor anggota", "id anggota"],
+      "response": "Silakan hubungi petugas perpustakaan atau gunakan fitur Lupa Nomor Anggota di website."
+    },
+    {
+      "keywords": ["pinjam buku", "peminjaman", "durasi"],
+      "response": "Masa peminjaman buku adalah 7 hari dan dapat diperpanjang satu kali."
+    },
+    {
+      "keywords": ["maksimal buku", "berapa buku", "jumlah buku"],
+      "response": "Setiap anggota dapat meminjam maksimal 3 buku."
+    },
+    {
+      "keywords": ["pinjam online", "pinjam lewat website"],
+      "response": "Login ke akun Anda, pilih buku yang tersedia, lalu klik tombol Pinjam Buku."
+    },
+    {
+      "keywords": ["kembalikan", "pengembalian buku"],
+      "response": "Buku dapat dikembalikan langsung ke perpustakaan atau melalui drop box."
+    },
+    {
+      "keywords": ["perpanjang", "renew", "perpanjangan"],
+      "response": "Perpanjangan peminjaman dapat dilakukan melalui website sebelum tanggal jatuh tempo."
+    },
+    {
+      "keywords": ["denda", "telat", "keterlambatan"],
+      "response": "Denda keterlambatan sebesar Rp1.000 per buku per hari."
+    },
+    {
+      "keywords": ["bayar denda", "pembayaran denda"],
+      "response": "Pembayaran denda dapat dilakukan langsung di loket perpustakaan."
+    },
+    {
+      "keywords": ["ebook", "buku digital"],
+      "response": "Perpustakaan menyediakan koleksi e-book yang dapat diakses oleh anggota."
+    },
+    {
+      "keywords": ["baca ebook", "akses ebook"],
+      "response": "Login ke akun Anda, pilih e-book, lalu klik Baca Online atau Unduh."
+    },
+    {
+      "keywords": ["login", "tidak bisa masuk", "gagal login"],
+      "response": "Pastikan email dan kata sandi benar. Gunakan fitur Lupa Password jika diperlukan."
+    },
+    {
+      "keywords": ["kontak", "hubungi", "cs"],
+      "response": "Silakan hubungi petugas melalui menu Kontak di website atau datang langsung ke perpustakaan."
+    }
+  ],
+  "fallback": "Maaf, saya belum memahami pertanyaan Anda. Silakan hubungi petugas perpustakaan atau gunakan menu bantuan."
+}

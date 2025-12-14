@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes.js';
 import catalogRoutes from './routes/catalog.routes.js';
+import chatbotRoutes from './routes/chatbot.routes.js';
 
 dotenv.config();
 const app = express();
@@ -20,6 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/catalog', catalogRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 app.get('/', (req, res) => {
   res.json({ message: 'Express + Supabase session auth working' });
 });
