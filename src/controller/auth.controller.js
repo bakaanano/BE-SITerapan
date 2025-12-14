@@ -137,19 +137,3 @@ export const logout = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
-// export const profile = (req, res) => {
-//   if (!req.session.userId) {
-//     return res.status(401).json({ message: 'Unauthorized' });
-//   }
-
-//   res.json({
-//     message: 'Authenticated',
-//     user: {
-//       id: req.session.userId,
-//       nim: req.session.nim, 
-//       email: req.session.email,
-//       full_name: req.session.fullName
-//     }
-//   });
-// };
