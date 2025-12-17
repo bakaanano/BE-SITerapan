@@ -76,7 +76,7 @@ export const login = async (req, res) => {
 
     // Simpan session
 
-    const ssn = { user_id: user.id, email: user.email, phone:user.phone, fullName: user.full_name };
+    const ssn = { user_id: user.user_id, email: user.email, phone:user.phone, fullName: user.full_name };
     const expireTime = new Date(Date.now() + 2 * 60 * 60 * 1000); 
     const { error: sessErr } = await supabase
     .from('session')
@@ -87,7 +87,7 @@ export const login = async (req, res) => {
     res.json({
       message: 'Login successful',
       user: {
-        id: user.id,
+        id: user.user_id,
         email: user.email,
         phone: user.phone,
         full_name: user.full_name
