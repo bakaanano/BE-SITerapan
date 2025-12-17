@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import supabase from '../utils/supabaseClient.js';
+import { checkUserLogin } from '../utils/authHelper.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,7 +46,7 @@ const findBestResponse = (userMessage) => {
 // Controller untuk chat
 export const sendMessage = async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, user_id } = req.body;
 
     if (!message || message.trim() === '') {
       return res.status(400).json({
@@ -53,7 +55,30 @@ export const sendMessage = async (req, res) => {
       });
     }
 
+    if (!user_id) {
+      return res.status(401).json({
+        success: false,
+        error: 'User ID wajib dikirim (Login required)'
+      });
+    }
+
+    const isLoggedIn = await checkUserLogin(user_id);
+    if (!isLoggedIn) {
+      return res.status(403).json({
+        success: false,
+        error: 'User tidak valid atau session expired'
+      });
+    }
+
     const response = findBestResponse(message);
+
+    // Save transaction to database
+    await supabase.from('interaction_log').insert([{
+      user_id: user_id,
+      message: message,
+      response: response || 'No response', // Fallback just in case
+      tanggal_interaksi: new Date()
+    }]);
 
     return res.status(200).json({
       success: true,

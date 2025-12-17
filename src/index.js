@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes.js';
 import catalogRoutes from './routes/catalog.routes.js';
 import chatbotRoutes from './routes/chatbot.routes.js';
+import bookingRoutes from './routes/booking.routes.js';
 
 dotenv.config();
 const app = express();
@@ -22,6 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/catalog', catalogRoutes);
 app.use('/api/chatbot', chatbotRoutes);
+app.use('/api/booking', bookingRoutes);
 app.get('/', (req, res) => {
   res.json({ message: 'Express + Supabase session auth working' });
 });
