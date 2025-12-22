@@ -1,5 +1,5 @@
 import supabase from '../utils/supabaseClient.js';
-import { checkUserLogin } from '../utils/authHelper.js';
+import { checkUserLogin, getUserRole } from '../utils/authHelper.js';
 
 export const createBooking = async (req, res) => {
     try {
@@ -45,9 +45,9 @@ export const createBooking = async (req, res) => {
 
         // Kurangi stok buku (optional, uncomment jika perlu update stok otomatis)
         const { error: updateError } = await supabase
-          .from('buku')
-          .update({ stok: buku.stok - 1 })
-          .eq('buku_id', buku_id);
+            .from('buku')
+            .update({ stok: buku.stok - 1 })
+            .eq('buku_id', buku_id);
 
         res.status(201).json({ message: 'Booking berhasil dibuat', data });
     } catch (err) {
@@ -65,7 +65,8 @@ export const getUserBookings = async (req, res) => {
         *,
         buku:buku_id (
           Judul,
-          Penulis
+          Penulis,
+          cover
         )
       `)
             .eq('user_id', user_id);
@@ -99,10 +100,52 @@ export const getAllBookings = async (req, res) => {
 export const updateBookingStatus = async (req, res) => {
     try {
         const { id } = req.params; // booking_id
-        const { status } = req.body;
+        const { status, user_id } = req.body; // user_id (requester) wajib dikirim
 
         if (!status) {
             return res.status(400).json({ message: 'Status baru wajib diisi' });
+        }
+
+        if (!user_id) {
+            return res.status(400).json({ message: 'User ID pelaksana wajib disertakan untuk validasi akses' });
+        }
+
+        // Cek Role User
+        const role = await getUserRole(user_id);
+
+        if (!role) {
+            return res.status(403).json({ message: 'Akses ditolak: User tidak valid atau session habis' });
+        }
+
+        // Ambil data booking lama untuk validasi kepemilikan
+        const { data: booking, error: fetchError } = await supabase
+            .from('booking')
+            .select('*')
+            .eq('booking_id', id)
+            .single();
+
+        if (fetchError || !booking) {
+            return res.status(404).json({ message: 'Booking tidak ditemukan' });
+        }
+
+        // Logic RBAC
+        if (role === 'admin') {
+            // Admin bebas update status apa saja
+        } else if (role === 'user') {
+            // User hanya boleh cancel booking milik sendiri
+            if (booking.user_id !== user_id) {
+                return res.status(403).json({ message: 'Anda tidak memiliki hak akses untuk mengubah booking ini' });
+            }
+
+            if (status !== 'cancelled') {
+                return res.status(403).json({ message: 'User hanya dapat membatalkan booking' });
+            }
+
+            if (booking.status !== 'pending') {
+                return res.status(400).json({ message: 'Hanya booking dengan status pending yang bisa dibatalkan' });
+            }
+        } else {
+            return res.status(403).json({ message: 'Role tidak dikenali' });
         }
 
         const { data, error } = await supabase
@@ -112,10 +155,6 @@ export const updateBookingStatus = async (req, res) => {
             .select();
 
         if (error) throw error;
-
-        if (data.length === 0) {
-            return res.status(404).json({ message: 'Booking tidak ditemukan' });
-        }
 
         res.status(200).json({ message: 'Status booking berhasil diupdate', data });
     } catch (err) {

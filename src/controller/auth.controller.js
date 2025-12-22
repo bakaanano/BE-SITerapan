@@ -1,9 +1,8 @@
-import bcrypt from 'bcrypt';
 import supabase from '../utils/supabaseClient.js';
 
 export const register = async (req, res) => {
   try {
-    const { full_name, email, phone, address, password, confirm_password } = req.body;
+    const { full_name, email, phone, address, password, confirm_password, role } = req.body;
 
     // Validasi sederhana
     if (password !== confirm_password) {
@@ -41,7 +40,9 @@ export const register = async (req, res) => {
         email,
         phone,
         address,
-        password
+        address,
+        password,
+        role: role || 'user' // Default ke 'user' jika tidak ada
       }]);
 
     if (insertError) throw insertError;
@@ -76,11 +77,11 @@ export const login = async (req, res) => {
 
     // Simpan session
 
-    const ssn = { user_id: user.user_id, email: user.email, phone:user.phone, fullName: user.full_name };
-    const expireTime = new Date(Date.now() + 2 * 60 * 60 * 1000); 
+    const ssn = { user_id: user.user_id, email: user.email, phone: user.phone, fullName: user.full_name, role: user.role };
+    const expireTime = new Date(Date.now() + 2 * 60 * 60 * 1000);
     const { error: sessErr } = await supabase
-    .from('session')
-    .insert([{ sid: user.phone, sess: ssn, expire: expireTime }]);
+      .from('session')
+      .insert([{ sid: user.phone, sess: ssn, expire: expireTime }]);
 
     if (sessErr) return res.status(500).json({ error: sessErr.message });
 
@@ -90,7 +91,9 @@ export const login = async (req, res) => {
         id: user.user_id,
         email: user.email,
         phone: user.phone,
-        full_name: user.full_name
+        phone: user.phone,
+        full_name: user.full_name,
+        role: user.role
       }
     });
   } catch (err) {

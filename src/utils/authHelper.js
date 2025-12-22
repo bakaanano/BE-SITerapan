@@ -36,3 +36,25 @@ export const checkUserLogin = async (user_id) => {
         return false;
     }
 };
+
+export const getUserRole = async (user_id) => {
+    if (!user_id) return null;
+
+    try {
+        const { data, error } = await supabase
+            .from('session')
+            .select('sess')
+            .filter('sess->>user_id', 'eq', user_id)
+            .gt('expire', new Date().toISOString())
+            .single();
+
+        if (error || !data) {
+            return null;
+        }
+
+        return data.sess.role || 'user';
+    } catch (err) {
+        console.error('Error getting user role:', err);
+        return null;
+    }
+};
