@@ -40,7 +40,6 @@ export const register = async (req, res) => {
         email,
         phone,
         address,
-        address,
         password,
         role: role || 'user' // Default ke 'user' jika tidak ada
       }]);
