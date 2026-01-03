@@ -38,13 +38,47 @@ export const sendMessage = async (req, res) => {
       }
     }
 
+    // Fetch books from database
+    const { data: books, error: bookError } = await supabase
+      .from('buku')
+      .select('Judul, Penulis, Kategori, stok');
+
+    // DEBUG: Log loaded books
+    console.log("DEBUG: Books loaded from DB:", books ? books.length : 0);
+    if (bookError) console.error("DEBUG: Error loading books:", bookError);
+
+    let bookContext = "";
+    if (books && books.length > 0) {
+      bookContext = "Daftar buku yang tersedia di perpustakaan (LANINYA TIDAK ADA):\n" +
+        books.map(b => `- ${b.Judul} oleh ${b.Penulis} (Kategori: ${b.Kategori}, Stok: ${b.stok})`).join('\n');
+    } else {
+      bookContext = "SAAT INI TIDAK ADA BUKU YANG TERSEDIA DI DATABASE.";
+    }
+    console.log("DEBUG: Book Context:", bookContext);
+
+    const systemPrompt = `Anda adalah asisten virtual perpustakaan yang ramah dan membantu.
+Tugas Anda adalah menjawab pertanyaan user seputar buku, peminjaman, dan info perpustakaan.
+
+INFORMASI DATABASE BUKU:
+${bookContext}
+
+ATURAN SANGAT PENTING (HARUS DIKUTI):
+1. Anda HANYA boleh memberikan informasi mengenai buku yang TERTULIS SECARA EKSPLISIT dalam daftar di atas.
+2. JANGAN PERNAH mengarang, menebak, atau menyebutkan judul buku yang tidak ada dalam daftar tersebut, meskipun buku itu terkenal (seperti Harry Potter, Laskar Pelangi, buku paket, dll).
+3. Jika user menanyakan buku yang TIDAK ada di daftar, Anda WAJIB menjawab: "Mohon maaf, buku tersebut saat ini tidak tersedia di perpustakaan kami."
+4. Jangan menawarkan rekomendasi buku di luar daftar ini via pengetahuan umum Anda.`;
+
+    // DEBUG: Log the system prompt
+    console.log("DEBUG: System Prompt sent to LLM:\n", systemPrompt);
+
     // Call Cerebras API
     const completion = await client.chat.completions.create({
       messages: [
-        { role: "system", content: "Anda adalah asisten virtual perpustakaan yang ramah dan membantu. Tugas Anda adalah menjawab pertanyaan user seputar buku, peminjaman, dan info perpustakaan." },
+        { role: "system", content: systemPrompt },
         { role: "user", content: message }
       ],
       model: "llama3.1-8b",
+      temperature: 0.2 // Lower tone down creativity to reduce hallucinations
     });
 
     const botResponse = completion.choices[0].message.content;
