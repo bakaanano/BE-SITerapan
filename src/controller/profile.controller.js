@@ -60,3 +60,48 @@ export const getProfile = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+export const updateProfile = async (req, res) => {
+    try {
+        const { user_id, full_name, address, password } = req.body;
+
+        if (!user_id) {
+            return res.status(400).json({ message: 'User ID wajib disertakan' });
+        }
+
+        // 1. Verifikasi Login
+        const isLoggedIn = await checkUserLogin(user_id);
+        if (!isLoggedIn) {
+            return res.status(403).json({ message: 'Akses ditolak. Validasi session gagal.' });
+        }
+
+        // 2. Siapkan data update
+        const updates = {};
+        if (full_name) updates.full_name = full_name;
+        if (address) updates.address = address;
+        if (password) updates.password = password; // Warning: Storing plain text password as per existing pattern
+
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({ message: 'Tidak ada data yang diupdate' });
+        }
+
+        // 3. Update ke Supabase
+        const { data, error } = await supabase
+            .from('user')
+            .update(updates)
+            .eq('user_id', user_id)
+            .select();
+
+        if (error) {
+            throw error;
+        }
+
+        res.status(200).json({
+            message: 'Profile berhasil diupdate',
+            updatedData: data[0]
+        });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
