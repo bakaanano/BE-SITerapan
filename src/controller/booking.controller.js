@@ -132,20 +132,50 @@ export const updateBookingStatus = async (req, res) => {
         if (role === 'admin') {
             // Admin bebas update status apa saja
         } else if (role === 'user') {
-            // User hanya boleh cancel booking milik sendiri
+            // User hanya boleh akses booking milik sendiri
             if (booking.user_id !== user_id) {
                 return res.status(403).json({ message: 'Anda tidak memiliki hak akses untuk mengubah booking ini' });
             }
 
-            if (status !== 'cancelled') {
-                return res.status(403).json({ message: 'User hanya dapat membatalkan booking' });
-            }
-
-            if (booking.status !== 'pending') {
-                return res.status(400).json({ message: 'Hanya booking dengan status pending yang bisa dibatalkan' });
+            // --- PERUBAHAN LOGIC DI SINI ---
+            
+            // 1. Logic Ajukan (Draft -> Pending)
+            if (status === 'pending') {
+                if (booking.status !== 'draft') {
+                     return res.status(400).json({ message: 'Hanya booking status draft yang bisa diajukan' });
+                }
+            } 
+            // 2. Logic Cancel (Draft/Pending -> Cancelled)
+            else if (status === 'cancelled') {
+                if (!['draft', 'pending'].includes(booking.status)) {
+                    return res.status(400).json({ message: 'Hanya booking status draft atau pending yang bisa dibatalkan' });
+                }
+            } 
+            // 3. Status lain dilarang untuk user
+            else {
+                return res.status(403).json({ message: 'User hanya dapat mengajukan atau membatalkan booking' });
             }
         } else {
             return res.status(403).json({ message: 'Role tidak dikenali' });
+        }
+
+        // Logic Pengembalian Stok
+        // Jika status berubah menjadi 'returned' atau 'cancelled' (dan sebelumnya bukan salah satunya), kembalikan stok
+        if ((status === 'returned' || status === 'cancelled') && booking.status !== status) {
+            // Cek stok buku saat ini
+            const { data: bukuData, error: bukuError } = await supabase
+                .from('buku')
+                .select('stok')
+                .eq('buku_id', booking.buku_id)
+                .single();
+
+            if (!bukuError && bukuData) {
+                // Update stok + 1
+                await supabase
+                    .from('buku')
+                    .update({ stok: bukuData.stok + 1 })
+                    .eq('buku_id', booking.buku_id);
+            }
         }
 
         const { data, error } = await supabase
